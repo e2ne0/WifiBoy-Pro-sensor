@@ -1,6 +1,0 @@
-{
-    "files.associations": {
-        "wbpro_fonts.h": "c",
-        "spi_master.h": "c"
-    }
-}
