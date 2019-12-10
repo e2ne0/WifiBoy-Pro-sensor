@@ -2,9 +2,11 @@
 #include <wifiboypro.h>
 #include "slider_sprite.h"
 
+int action = 21; //紅外線
+int detect = 5;  //檢測
+int IC = 22;
 int dhtPin = 23;
 DHTesp dht;
-int state = 5;
 unsigned long currentTime;
 unsigned long CD;
 int temperature;
@@ -31,14 +33,15 @@ void setup()
 	wbpro_initBuf8();
 	for (int i = 0; i < 256; i++)
 		wbpro_setPal8(i, wbpro_color565(sprite_pal[i][0], sprite_pal[i][1], sprite_pal[i][2]));
-	
-	pinMode(state, INPUT);
+	pinMode(action, OUTPUT);
+	pinMode(detect, INPUT);
+	pinMode(IC, OUTPUT);
 }
 void loop()
 {
 	currentTime = millis();
 	wbpro_clearBuf8();
-	if (digitalRead(state) == 0)
+	if (digitalRead(detect) == 0)
 	{
 		for (int i = 0; i < 120; i++)
 		{
@@ -47,6 +50,8 @@ void loop()
 				wbpro_setBuf8(i * 240 + k, 60);
 			}
 		}
+		digitalWrite(action, LOW);
+		digitalWrite(IC, LOW);
 	}
 	else
 	{
@@ -57,6 +62,8 @@ void loop()
 				wbpro_setBuf8(i * 240 + k, 224);
 			}
 		}
+		digitalWrite(action, HIGH);
+		digitalWrite(IC, HIGH);
 	}
 	if (currentTime >= CD)
 	{
