@@ -1,90 +1,70 @@
 #include <DHTesp.h>
 #include <wifiboypro.h>
+#include "slider_sprite.h"
 
 int dhtPin = 23;
 DHTesp dht;
-
+int state = 5;
 unsigned long currentTime;
 unsigned long CD;
-uint16_t temperature[240];
-uint16_t humidity[240];
-
-String readDHTTemperature()
+int temperature;
+int humidity;
+void blit_num256(uint16_t num, uint16_t x, uint16_t y)
 {
-	float t = dht.getTemperature();
+	uint16_t d[3];
 
-	if (isnan(t))
+	d[0] = num / 100;
+	d[1] = (num - d[0] * 100) / 10;
+	d[2] = num - d[0] * 100 - d[1] * 10;
+	for (int i = 0; i < 3; i++)
 	{
-		return "--";
-	}
-	else
-	{
-		Serial.println(t);
-		return String(t);
-	}
-}
-
-String readDHTHumidity()
-{
-	float h = dht.getHumidity();
-	if (isnan(h))
-	{
-		return "--";
-	}
-	else
-	{
-		Serial.println(h);
-		return String(h);
+		wbpro_blitBuf8(d[i] * 22 + 9, 6, 240, x + i * 22, y, 22, 34, (uint8_t *)sprites);
 	}
 }
 
 void setup()
 {
 	currentTime = millis();
-	dht.setup(dhtPin, DHTesp::DHT11);
-	for (int i = 0; i < 240; i++)
-	{
-		temperature[i] = 0;
-		humidity[i] = 0;
-	}
-    wbpro_init();
-	wbpro_setTextColor(wbWHITE, wbWHITE);
 	pinMode(dhtPin, INPUT);
+	dht.setup(dhtPin, DHTesp::DHT11);
+	wbpro_init();
+	wbpro_initBuf8();
+	for (int i = 0; i < 256; i++)
+		wbpro_setPal8(i, wbpro_color565(sprite_pal[i][0], sprite_pal[i][1], sprite_pal[i][2]));
+	
+	pinMode(state, INPUT);
 }
 void loop()
 {
 	currentTime = millis();
-	if (currentTime >= CD)
+	wbpro_clearBuf8();
+	if (digitalRead(state) == 0)
 	{
-
-		for (int i = 0; i < 240; i++)
+		for (int i = 0; i < 120; i++)
 		{
-
-			if (i != 239)
+			for (int k = 0; k < 240; k++)
 			{
-				wbpro_drawLine(239 - i, 140 - temperature[i], 239 - i, 140 - temperature[i], wbBLACK, 1);
-				temperature[i] = temperature[i + 1];
-				wbpro_drawLine(239 - i, 140 - temperature[i], 239 - i, 140 - temperature[i], wbWHITE, 1);
-				Serial.println(temperature[i]);
-				wbpro_drawLine(239 - i, 290 - humidity[i], 239 - i, 290 - humidity[i], wbBLACK, 1);
-				humidity[i] = humidity[i + 1];
-				wbpro_drawLine(239 - i, 290 - humidity[i], 239 - i, 290 - humidity[i], wbWHITE, 1);
-			}
-			if (i == 239)
-			{
-				wbpro_drawLine(239 - i, 140 - temperature[i], 239 - i, 140 - temperature[i], wbBLACK, 1);
-				wbpro_drawLine(239 - i, 290 - humidity[i], 239 - i, 290 - humidity[i], wbBLACK, 1);
-				temperature[i] = (uint16_t)dht.getTemperature();
-				humidity[i] = (uint16_t)dht.getHumidity();
-				wbpro_drawLine(239 - i, 140 - temperature[i], 239 - i, 140 - temperature[i], wbWHITE, 1);
-				wbpro_drawLine(239 - i, 290 - humidity[i], 239 - i, 290 - humidity[i], wbWHITE, 1);
+				wbpro_setBuf8(i * 240 + k, 60);
 			}
 		}
-
-		wbpro_fillRect(100, 150, 42, 16, wbBLACK);
-		wbpro_drawString(readDHTTemperature().c_str(), 100, 150, 1, 2);
-		wbpro_fillRect(100, 300, 42, 16, wbBLACK);
-		wbpro_drawString(readDHTHumidity().c_str(), 100, 300, 1, 2);
+	}
+	else
+	{
+		for (int i = 0; i < 120; i++)
+		{
+			for (int k = 0; k < 240; k++)
+			{
+				wbpro_setBuf8(i * 240 + k, 224);
+			}
+		}
+	}
+	if (currentTime >= CD)
+	{
+		temperature = (int)dht.getTemperature();
+		humidity = (int)dht.getHumidity();
 		CD += 1152;
 	}
+	blit_num256(temperature, 27, 223);
+	blit_num256(humidity, 147, 223);
+	wbpro_blit8();
 }
