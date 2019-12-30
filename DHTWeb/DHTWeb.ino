@@ -1,3 +1,5 @@
+#include <ArduinoJson.h>
+
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
 #include <Adafruit_Sensor.h>
@@ -56,11 +58,15 @@ const char index_html[] PROGMEM = R"rawliteral(
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
   <style>
-    html {
+    body {
      font-family: Arial;
-     display: inline-block;
-     margin: 0px auto;
-     text-align: center;
+     display: flex;
+	 flex-direction: column;
+	 justify-content: 'center';
+     align-items: 'center;'
+	 width: 100%;
+	 height: 768px;
+     text-align: centerå;
     }
     h2 { font-size: 3.0rem; }
     p { font-size: 3.0rem; }
@@ -153,10 +159,25 @@ void setup()
 	// Print ESP32 Local IP Address
 	Serial.println(WiFi.localIP());
 
+
 	// Route for root / web page
+	// server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+	// 	request->send_P(200, "application/json", index_html, processor);
+	// });
+
+
+
 	server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-		request->send_P(200, "text/html", index_html, processor);
+		char responseMessage[20];
+		strcpy (responseMessage,readDHTTemperature().c_str());
+  		strcat (responseMessage,", ");
+  		strcat (responseMessage,readDHTHumidity().c_str());
+		strcat (responseMessage,"\n");
+		puts(responseMessage);
+
+		request->send_P(200, "text/plain", responseMessage);
 	});
+
 	server.on("/temperature", HTTP_GET, [](AsyncWebServerRequest *request) {
 		request->send_P(200, "text/plain", readDHTTemperature().c_str());
 	});

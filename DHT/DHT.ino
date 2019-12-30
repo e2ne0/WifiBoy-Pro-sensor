@@ -47,7 +47,7 @@ void loop()
 		{
 			for (int k = 0; k < 240; k++)
 			{
-				wbpro_setBuf8(i * 240 + k, 60);
+				wbpro_setBuf8(i * 240 + k, 224);
 			}
 		}
 		digitalWrite(action, LOW);
@@ -59,7 +59,7 @@ void loop()
 		{
 			for (int k = 0; k < 240; k++)
 			{
-				wbpro_setBuf8(i * 240 + k, 224);
+				wbpro_setBuf8(i * 240 + k, 60);
 			}
 		}
 		digitalWrite(action, HIGH);
